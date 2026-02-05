@@ -1,0 +1,95 @@
+arduino code
+#include <Servo.h>
+
+// =====================
+// SERVO OBJECTS
+// =====================
+Servo baseServo;
+Servo armServo;
+Servo elbowServo;
+Servo brushServo;
+
+// =====================
+// PINS
+// =====================
+const int pumpPin = 10;
+
+// =====================
+// SERVO POSITIONS
+// =====================
+int baseRest = 90;
+int armRest = 90;
+int elbowRest = 90;
+int brushRest = 0;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Attach servos
+  baseServo.attach(3);
+  armServo.attach(5);
+  elbowServo.attach(6);
+  brushServo.attach(9);
+
+  // Pump relay
+  pinMode(pumpPin, OUTPUT);
+  digitalWrite(pumpPin, LOW);
+
+  // Move to rest position
+  moveToRest();
+
+  Serial.println("Arduino READY");
+}
+
+void loop() {
+  if (Serial.available()) {
+    char command = Serial.read();
+
+    if (command == 'P') {   // Pollination command
+      pollinationProcess();
+    }
+  }
+}
+
+// =====================
+// FUNCTIONS
+// =====================
+
+void moveToRest() {
+  baseServo.write(baseRest);
+  armServo.write(armRest);
+  elbowServo.write(elbowRest);
+  brushServo.write(brushRest);
+  delay(1000);
+}
+
+void pollinationProcess() {
+
+  // ---- Move to Flower A ----
+  baseServo.write(60);
+  delay(700);
+  armServo.write(70);
+  delay(700);
+  elbowServo.write(120);
+  delay(700);
+
+  // ---- Collect pollen ----
+  brushServo.write(45);   // brush touches flower
+  delay(1200);
+
+  // ---- Move to Flower B ----
+  baseServo.write(120);
+  delay(1000);
+
+  // ---- Release pollen ----
+  brushServo.write(0);
+  delay(800);
+
+  // ---- Water plant ----
+  digitalWrite(pumpPin, HIGH);
+  delay(3000);
+  digitalWrite(pumpPin, LOW);
+
+  // ---- Return to rest ----
+  moveToRest();
+}
